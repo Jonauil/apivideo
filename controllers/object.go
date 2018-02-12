@@ -20,10 +20,13 @@ type ObjectController struct {
 // @Failure 403 body is empty
 // @router / [post]
 func (o *ObjectController) Post() {
-	var ob models.Object
+	var ob models.Info
 	json.Unmarshal(o.Ctx.Input.RequestBody, &ob)
-	objectid := models.AddOne(ob)
-	o.Data["json"] = map[string]string{"ObjectId": objectid}
+	if id,err := models.AddOne(&ob);err == nil{
+		o.Data["json"] = map[string]int64{"id":id}
+	}else{
+		o.Data["json"] = err.Error()
+	}
 	o.ServeJSON()
 }
 
@@ -37,14 +40,12 @@ func (o *ObjectController) Get() {
 	objectId := o.Ctx.Input.Param(":objectId")
 	if objectId != "" {
 		videoObject,_ :=strconv.Atoi(objectId)
-		//ob, err := models.GetOne(videoObject)
-		ob := models.GetOne(videoObject)
-		//if err != nil {
-		//	o.Data["json"] = err.Error()
-		//} else {
-		//	o.Data["json"] = ob
-		//}
-		o.Data["json"] =ob
+		ob, err := models.GetOne(videoObject)
+		if err != nil {
+			o.Data["json"] = err.Error()
+		} else {
+			o.Data["json"] = ob
+		}
 	}
 	o.ServeJSON()
 }
@@ -89,8 +90,12 @@ func (o *ObjectController) Put() {
 // @router /:objectId [delete]
 func (o *ObjectController) Delete() {
 	objectId := o.Ctx.Input.Param(":objectId")
-	models.Delete(objectId)
-	o.Data["json"] = "delete success!"
+	id,_ := strconv.Atoi(objectId)
+	if err := models.Delete(id);err == nil{
+		o.Data["json"] = "delete success!"
+	}else{
+		o.Data["json"] = err.Error()
+	}
 	o.ServeJSON()
 }
 

@@ -61,23 +61,16 @@ func (o *ObjectController) GetAll() {
 	o.ServeJSON()
 }
 
-// @Title Update
-// @Description update the object
-// @Param	objectId		path 	string	true		"The objectid you want to update"
-// @Param	body		body 	models.Object	true		"The body"
-// @Success 200 {object} models.Object
-// @Failure 403 :objectId is empty
-// @router /:objectId [put]
 func (o *ObjectController) Put() {
 	objectId := o.Ctx.Input.Param(":objectId")
-	var ob models.Object
-	json.Unmarshal(o.Ctx.Input.RequestBody, &ob)
+	id,_ := strconv.Atoi(objectId)
+	info := models.Info{Id:id}
+	json.Unmarshal(o.Ctx.Input.RequestBody, &info)
 
-	err := models.Update(objectId, ob.Score)
-	if err != nil {
-		o.Data["json"] = err.Error()
-	} else {
+	if err := models.Update(&info); err == nil {
 		o.Data["json"] = "update success!"
+	}else{
+		o.Data["json"] = err.Error()
 	}
 	o.ServeJSON()
 }

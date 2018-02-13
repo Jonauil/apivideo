@@ -1,7 +1,6 @@
 package models
 
 import (
-	"errors"
 	"time"
 	"github.com/astaxie/beego/orm"
 	_ "github.com/go-sql-driver/mysql"
@@ -88,12 +87,15 @@ func GetAll() (map[string] interface{}) {
 	return videoslist
 }
 
-func Update(ObjectId string, Score int64) (err error) {
-	if v, ok := Objects[ObjectId]; ok {
-		v.Score = Score
-		return nil
+func Update(info *Info) (err error){
+	o := orm.NewOrm()
+	v := Info{Id: info.Id}
+	if err = o.Read(&v);err == nil{
+		if num,err := o.Update(info);err == nil{
+			fmt.Println("Number of records updated in database:",num)
+		}
 	}
-	return errors.New("ObjectId Not Exist")
+	return
 }
 
 func Delete(id int) (err error){

@@ -23,7 +23,7 @@ func init(){
 	conn := dbuser + ":" + dbpassword + "@tcp(" +dbhost + ":" + dbport + ")/" + db + "?charset=utf8&loc=Asia%2FShanghai"
 	//注册数据库连接
 	orm.RegisterDataBase("default","mysql",conn)
-	orm.RegisterModel(new(models.Info))
+	orm.RegisterModel(new(models.Info),new(models.UserInfo))
 	orm.RunSyncdb("default",false,true)
     //orm.RegisterModel(new(models.Info))
 	fmt.Printf("数据库连接成功! %s\n",conn)

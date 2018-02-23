@@ -5,8 +5,12 @@ import (
 	"encoding/json"
 
 	"github.com/astaxie/beego"
+	"strconv"
 )
 
+var (
+	userInfo models.UserInfo
+)
 // Operations about Users
 type UserController struct {
 	beego.Controller
@@ -19,11 +23,13 @@ type UserController struct {
 // @Failure 403 body is empty
 // @router / [post]
 func (u *UserController) Post() {
-	var user models.User
-	json.Unmarshal(u.Ctx.Input.RequestBody, &user)
-	uid := models.AddUser(user)
-	u.Data["json"] = map[string]string{"uid": uid}
-	u.ServeJSON()
+	json.Unmarshal(u.Ctx.Input.RequestBody,&userInfo)
+	if uid,err := models.AddUser(&userInfo);err == nil {
+          u.Data["json"] = map[string]int64{"uid":uid}
+	}else{
+		  u.Data["json"] = err
+	}
+    u.ServeJSON()
 }
 
 // @Title GetAll
@@ -43,9 +49,10 @@ func (u *UserController) GetAll() {
 // @Failure 403 :uid is empty
 // @router /:uid [get]
 func (u *UserController) Get() {
-	uid := u.GetString(":uid")
-	if uid != "" {
-		user, err := models.GetUser(uid)
+	objectId := u.Ctx.Input.Param(":uid")
+	if objectId != "" {
+		userObject,_ := strconv.Atoi(objectId)
+		user, err := models.GetUser(userObject)
 		if err != nil {
 			u.Data["json"] = err.Error()
 		} else {
@@ -63,16 +70,15 @@ func (u *UserController) Get() {
 // @Failure 403 :uid is not int
 // @router /:uid [put]
 func (u *UserController) Put() {
-	uid := u.GetString(":uid")
-	if uid != "" {
-		var user models.User
-		json.Unmarshal(u.Ctx.Input.RequestBody, &user)
-		uu, err := models.UpdateUser(uid, &user)
-		if err != nil {
-			u.Data["json"] = err.Error()
-		} else {
-			u.Data["json"] = uu
-		}
+	objectId := u.Ctx.Input.Param(":uid")
+	uid,_ := strconv.Atoi(objectId)
+	uinfo := models.UserInfo{Uid:uid}
+	json.Unmarshal(u.Ctx.Input.RequestBody,&uinfo)
+
+	if err := models.UpdateUser(&uinfo);err == nil {
+		u.Data["json"] = "update success!"
+	}else{
+		u.Data["json"] = err.Error()
 	}
 	u.ServeJSON()
 }
@@ -84,9 +90,13 @@ func (u *UserController) Put() {
 // @Failure 403 uid is empty
 // @router /:uid [delete]
 func (u *UserController) Delete() {
-	uid := u.GetString(":uid")
-	models.DeleteUser(uid)
-	u.Data["json"] = "delete success!"
+	uid := u.Ctx.Input.Param(":uid")
+	id,_ := strconv.Atoi(uid)
+	if err := models.DeleteUser(id);err == nil{
+		u.Data["json"] = "delete success!"
+	}else{
+		u.Data["json"] = err.Error()
+	}
 	u.ServeJSON()
 }
 
